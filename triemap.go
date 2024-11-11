@@ -30,7 +30,7 @@ import (
 	"net/netip"
 	"sync"
 
-	"github.com/noisysockets/netutil/uint128"
+	"github.com/dpeckett/triemap/internal/uint128"
 )
 
 // TrieMap contains an efficient trie structure of netip.Prefix that can
