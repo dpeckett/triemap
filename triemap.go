@@ -141,6 +141,36 @@ func (t *TrieMap[V]) Empty() bool {
 		(ipv6Root == nil || (ipv6Root.child0 == nil && ipv6Root.child1 == nil && ipv6Root.value == nil))
 }
 
+// ForEach iterates over all prefixes in the TrieMap and calls the provided function
+// with the prefix and value. If the function returns false, the iteration stops.
+func (t *TrieMap[V]) ForEach(f func(prefix netip.Prefix, value V) bool) {
+	t.mu.RLock()
+	defer t.mu.RUnlock()
+
+	var walk func(node *trieNode) bool
+	walk = func(node *trieNode) bool {
+		if node == nil {
+			return true
+		}
+		if node.value != nil {
+			val := t.keyToValue[node.value.key]
+			if !f(node.value.prefix, val) {
+				return false
+			}
+		}
+		if !walk(node.child0) {
+			return false
+		}
+		if !walk(node.child1) {
+			return false
+		}
+		return true
+	}
+
+	walk(t.trieMap.ipv4Root)
+	walk(t.trieMap.ipv6Root)
+}
+
 // trieMap is the core implementation but it only stores netip.Prefix : int.
 type trieMap struct {
 	ipv4Root *trieNode
@@ -166,7 +196,7 @@ func (t *trieMap) get(addr netip.Addr) (key int, contains bool) {
 	curr := root
 
 	// Maybe the root node matches.
-	var longestMatchLength int = -1
+	longestMatchLength := -1
 	if curr.value != nil && curr.value.prefix.Contains(addr) {
 		longestMatchLength = curr.value.prefix.Bits()
 		key = curr.value.key

@@ -326,3 +326,21 @@ func TestTrieMapIPv6(t *testing.T) {
 	value, _ = trieMap.Get(netip.MustParseAddr("2404:6800:4004:800:dead:beef:dead:beef"))
 	require.Equal(t, "a", value)
 }
+
+func TestTrieMapForEach(t *testing.T) {
+	expectedCount := 0
+	trieMap := triemap.New[string]()
+	for value, prefixes := range testPrefixes {
+		for _, prefix := range prefixes {
+			trieMap.Insert(prefix, value)
+			expectedCount++
+		}
+	}
+
+	count := 0
+	trieMap.ForEach(func(prefix netip.Prefix, value string) bool {
+		count++
+		return true
+	})
+	require.Equal(t, expectedCount, count)
+}
