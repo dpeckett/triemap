@@ -344,3 +344,21 @@ func TestTrieMapForEach(t *testing.T) {
 	})
 	require.Equal(t, expectedCount, count)
 }
+
+func TestTrieMapClear(t *testing.T) {
+	trieMap := triemap.New[string]()
+	for value, prefixes := range testPrefixes {
+		for _, prefix := range prefixes {
+			trieMap.Insert(prefix, value)
+		}
+	}
+
+	trieMap.Clear()
+
+	for _, prefixes := range testPrefixes {
+		for _, prefix := range prefixes {
+			_, contains := trieMap.Get(prefix.Addr())
+			require.False(t, contains)
+		}
+	}
+}

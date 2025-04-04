@@ -171,6 +171,17 @@ func (t *TrieMap[V]) ForEach(f func(prefix netip.Prefix, value V) bool) {
 	walk(t.trieMap.ipv6Root)
 }
 
+// Clear removes all entries from the TrieMap.
+func (t *TrieMap[V]) Clear() {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	// Reset the trie and internal maps
+	t.trieMap = trieMap{}
+	t.keyToValue = make(map[int]V)
+	t.valueToKey = make(map[V]int)
+}
+
 // trieMap is the core implementation but it only stores netip.Prefix : int.
 type trieMap struct {
 	ipv4Root *trieNode
